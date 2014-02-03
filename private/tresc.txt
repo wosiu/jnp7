@@ -1,0 +1,120 @@
+=== Zadanie 42 ===
+
+W tym roku chcieliśmy zamiast ostatniego zadania opublikować jego
+rozwiązanie, ale niestety, zanim zdążyliśmy to zrobić, niektóre
+kawałki wyedytował jakiś pies.
+
+Zatem niestety zadanie jest i polega na doprowadzeniu kodu do pierwotnego
+stanu.
+
+#include <stack>
+#include <string>
+#include <functional>
+#include <exception>
+#include <cassert>
+
+ŁAPA
+
+class LazyCalculator {
+    USZY
+
+    public:
+        OGON
+
+        Lazy parse(const std::string& s) const {
+            NOS
+        }
+
+        int calculate(const std::string& s) const {
+            return parse(s)();
+        }
+
+        void define(char c, std::function<int(Lazy, Lazy)> fn) {
+            DRUGA ŁAPA
+        }
+};
+
+std::function<void(void)> operator*(int n, std::function<void(void)> fn) {
+    return [=]() {
+       for (int i = 0; i < n; i++)
+           fn();
+    };
+}
+
+int manytimes(Lazy n, Lazy fn) {
+    (n() * fn)();  // Did you notice the type cast?
+    return 0;
+}
+
+int main() {
+    LazyCalculator calculator;
+
+    // The only literals...
+    assert(calculator.calculate("0") == 0);
+    assert(calculator.calculate("2") == 2);
+    assert(calculator.calculate("4") == 4);
+
+    // Built-in operators.
+    assert(calculator.calculate("42+") == 6);
+    assert(calculator.calculate("24-") == -2);
+    assert(calculator.calculate("42*") == 8);
+    assert(calculator.calculate("42/") == 2);
+
+    assert(calculator.calculate("42-2-") == 0);
+    assert(calculator.calculate("242--") == 0);
+    assert(calculator.calculate("22+2-2*2/0-") == 2);
+
+    // The fun.
+    calculator.define('!', [](Lazy a, Lazy b) { return a()*10 + b(); });
+    assert(calculator.calculate("42!") == 42);
+
+    std::string buffer;
+    calculator.define(',', [](Lazy a, Lazy b) { a(); return b(); });
+    calculator.define('P', [&buffer](Lazy a, Lazy b) { buffer += "pomidor"; return 0; });
+    assert(calculator.calculate("42P42P42P42P42P42P42P42P42P42P42P42P42P42P42P42P,,,,42P42P42P42P42P,,,42P,42P,42P42P,,,,42P,,,42P,42P,42P,,42P,,,42P,42P42P42P42P42P42P42P42P,,,42P,42P,42P,,,,,,,,,,,,") == 0);
+    assert(buffer.length() == 42 * std::string("pomidor").length());
+
+    std::string buffer2 = std::move(buffer);
+    buffer.clear();
+    calculator.define('$', manytimes);
+    assert(calculator.calculate("42!42P$") == 0);
+    // Notice, how std::move worked.
+    assert(buffer.length() == 42 * std::string("pomidor").length());
+
+    calculator.define('?', [](Lazy a, Lazy b) { return a() ? b() : 0; });
+    assert(calculator.calculate("042P?") == 0);
+    assert(buffer == buffer2);
+
+    assert(calculator.calculate("042!42P$?") == 0);
+    assert(buffer == buffer2);
+
+    for (auto bad: {"", "42", "4+", "424+"}) {
+        try {
+            calculator.calculate(bad);
+            assert(false);
+        } catch (SyntaxError) { }
+    }
+
+    try {
+        calculator.define('!', [](Lazy a, Lazy b) { return a()*10 + b(); });
+        assert(false);
+    } catch (OperatorAlreadyDefined) { }
+
+    try {
+        calculator.calculate("02&");
+        assert(false);
+    } catch (UnknownOperator) { }
+}
+
+=== Ustalenia techniczne ===
+
+Jako rozwiązanie należy dostarczyć plik 42.cc,
+który należy umieścić w repozytorium w katalogu
+
+grupaN/zadanie7/ab123456
+
+gdzie N jest numerem grupy, a ab123456 jest identyfikatorem
+umieszczającego to rozwiązanie. Katalog z rozwiązaniem nie powinien
+zawierać innych plików, ale może zawierać podkatalog private, gdzie
+można umieszczać różne pliki, np. swoje testy. Pliki umieszczone
+w tym podkatalogu nie będą oceniane.
